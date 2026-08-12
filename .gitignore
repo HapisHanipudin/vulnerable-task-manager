@@ -1,0 +1,53 @@
+.DS_Store
+Thumbs.db
+
+# Node
+node_modules/
+backend/node_modules/
+frontend/node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.npm/
+
+# Logs
+logs/
+*.log
+
+# Environment files
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# Build outputs
+dist/
+build/
+frontend/build/
+coverage/
+
+# Docker
+docker-compose.override.yml
+
+# Database
+*.sqlite
+*.sqlite3
+db/*.db
+
+# IDEs and editors
+.vscode/
+.idea/
+.history/
+
+# OS files
+ehthumbs.db
+Icon?
+
+# Misc
+tmp/
+temp/
+pids/
+*.pid
+secrets.json
+.cache/
