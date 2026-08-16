@@ -34,11 +34,43 @@ app.post("/api/login", (req, res) => {
   });
 });
 
-// Endpoint CRUD Task (Bisa lu tambahin Broken Access Control di sini nanti)
+// App Layer Vulnerability: Broken Access Control / IDOR
 app.get("/api/tasks", (req, res) => {
-  db.query("SELECT * FROM tasks", (err, results) => {
+  // Vulnerability: Mempercayai input userId dari query tanpa validasi token/sesi.
+  // Attacker bisa ganti parameter ?userId=1 untuk melihat task milik admin.
+  const userId = req.query.userId;
+  let query = "SELECT * FROM tasks";
+  if (userId) query = `SELECT * FROM tasks WHERE user_id = ${userId}`;
+  
+  db.query(query, (err, results) => {
     if (err) return res.status(500).send(err);
     res.json(results);
+  });
+});
+
+// App Layer Vulnerability: Stored XSS
+app.post("/api/tasks", (req, res) => {
+  const { userId, title, description } = req.body;
+  // Vulnerability: Tidak ada sanitasi input HTML/JS pada 'title' dan 'description'.
+  // Script berbahaya bisa disimpan ke database dan dieksekusi di browser korban.
+  const query = `INSERT INTO tasks (user_id, title, description) VALUES (?, ?, ?)`;
+  
+  db.query(query, [userId, title, description], (err, results) => {
+    if (err) return res.status(500).send(err);
+    res.status(201).json({ message: "Task created successfully!" });
+  });
+});
+
+// App Layer Vulnerability: Broken Access Control (IDOR pada Delete)
+app.delete("/api/tasks/:id", (req, res) => {
+  const taskId = req.params.id;
+  // Vulnerability: Sistem tidak mengecek apakah task ini benar milik user yang sedang login.
+  // Attacker bisa menghapus task siapapun dengan menebak ID.
+  const query = `DELETE FROM tasks WHERE id = ?`;
+  
+  db.query(query, [taskId], (err, results) => {
+    if (err) return res.status(500).send(err);
+    res.json({ message: "Task deleted successfully!" });
   });
 });
 
